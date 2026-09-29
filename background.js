@@ -1,1 +1,2 @@
 chrome.runtime.onInstalled.addListener(()=>chrome.storage.local.set({installedAt:Date.now()}));
+chrome.alarms.onAlarm.addListener(a=>{if(a.name==="railway-reminder")chrome.notifications.create("railway-reminder",{type:"basic",iconUrl:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",title:"🚆 Railway Reminder",message:"Your saved railway journey reminder is due. Open Bangladesh Railway and review your booking."})});
