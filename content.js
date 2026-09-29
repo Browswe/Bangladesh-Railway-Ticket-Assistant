@@ -6,8 +6,14 @@ function allFields(){return [...document.querySelectorAll("input,textarea,select
 function matches(e,words){const t=textOf(e);return words.some(w=>t.includes(norm(w)))}
 function findField(words,{exclude=[]}={}){return allFields().find(e=>matches(e,words)&&!exclude.some(w=>matches(e,[w])))}
 function findAll(words,{exclude=[]}={}){return allFields().filter(e=>matches(e,words)&&!exclude.some(w=>matches(e,[w])))}
-const CLASS_ALIASES={SHOVAN:["SHOVAN","SHULOV","SHOVON"],S_CHAIR:["S_CHAIR","SHOVON CHAIR","SHOVAN CHAIR"],SNIGDHA:["SNIGDHA"],F_BERTH:["F_BERTH","FIRST BERTH"],F_SEAT:["F_SEAT","FIRST SEAT"],F_CHAIR:["F_CHAIR","FIRST CHAIR"],AC_B:["AC_B","AC BERTH"],AC_S:["AC_S","AC SEAT"],AC_CHAIR:["AC_CHAIR","AC CHAIR"]};
+const CLASS_ALIASES={SHOVAN:["SHOVAN","SHULOV","SHOVON","SHOVON CHAIR","SHOVAN"],S_CHAIR:["S_CHAIR","SHOVON CHAIR","SHOVAN CHAIR"],SNIGDHA:["SNIGDHA"],F_BERTH:["F_BERTH","FIRST BERTH","1ST BERTH"],F_SEAT:["F_SEAT","FIRST SEAT","1ST SEAT"],F_CHAIR:["F_CHAIR","FIRST CHAIR","1ST CHAIR"],AC_B:["AC_B","AC BERTH"],AC_S:["AC_S","AC SEAT"],AC_CHAIR:["AC_CHAIR","AC CHAIR"]};
 function classCandidates(value){const key=norm(value).replace(/ /g,"_");return CLASS_ALIASES[key]||[value]};
+function findClassControl(){
+  const fields=allFields();
+  const direct=fields.find(e=>/class|coach|seat class|choose class/.test(textOf(e)));
+  if(direct)return direct;
+  return [...document.querySelectorAll("button,[role='button'],div,span")].filter(visible).find(e=>/choose a class|choose class|class/.test(norm(e.textContent)) && norm(e.textContent).length<60);
+}
 function optionNodes(){
   return [...document.querySelectorAll("[role='option'],option,li,mat-option,.ng-option,.dropdown-item,[data-value]")].filter(visible);
 }
@@ -78,7 +84,7 @@ async function fillSearch(d){
   const from=findField(["from","origin","source","boarding station","departure station","starting station"]);
   const to=findField(["to","destination","arrival station","destination station"]);
   const date=findField(["journey date","travel date","departure date","date"]);
-  const cls=findField(["class","coach","seat class","choose class"]);
+  const cls=findClassControl();
   const qty=findField(["passenger quantity","ticket quantity","passenger","quantity","adult"]);
   const train=findField(["train name","train"]);
   count+=await typeAndPick(from,d.from)?1:0;
