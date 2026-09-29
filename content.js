@@ -25,7 +25,33 @@ function choose(e,value){
 }
 function fillProfile(p,index=0){if(!p)return{message:"No passenger profile selected."};const names=findAll(["full name","passenger name","traveller name","traveler name","name"],{exclude:["email"]});const mobiles=findAll(["mobile","phone","contact"]);const ids=findAll(["nid","national id","identity number","identification number","id number"]);const passports=findAll(["passport"]);let count=0;count+=setValue(names[index],p.fullName||p.name)?1:0;count+=setValue(mobiles[index],p.phone)?1:0;count+=setValue(ids[index],p.nid)?1:0;count+=setValue(passports[index],p.passport)?1:0;return{message:count?"Filled "+count+" passenger field(s). Review the details manually.":"No matching passenger fields were found on this page."}}
 function fillProfiles(ps){const results=(ps||[]).map((p,i)=>fillProfile(p,i));const filled=results.filter(r=>!r.message.startsWith("No matching")).length;return{message:"Processed "+(ps?.length||0)+" profile(s); matched "+filled+". Review every passenger manually."}}
-function fillSearch(d){let count=0;const from=findField(["from","origin","source","boarding station","departure station"],{exclude:["email"]});const to=findField(["to","destination","arrival station"]);const date=findField(["journey date","travel date","departure date"]);const cls=findField(["class","coach","seat class"]);const qty=findField(["passenger","quantity","adult","ticket quantity"]);const train=findField(["train"]);count+=choose(from,d.from)?1:0;count+=choose(to,d.to)?1:0;count+=choose(date,d.date)?1:0;count+=choose(cls,d.class)?1:0;count+=choose(qty,d.qty)?1:0;count+=choose(train,d.train)?1:0;return{message:count?"Filled "+count+" search field(s). Review before searching.":"No matching search fields were found on this page."}}
+function typeAndPick(e,value){
+  if(!e||value==null||value==="")return false;
+  e.focus();e.click();
+  const before=e.value;
+  if(setValue(e,value)&&String(e.value)===String(value))return true;
+  const wanted=norm(value);
+  const nodes=[...document.querySelectorAll("[role='option'],option,li,mat-option,.ng-option,.dropdown-item")].filter(visible);
+  const opt=nodes.find(o=>norm(o.textContent)===wanted||norm(o.textContent).includes(wanted));
+  if(opt){opt.click();return true}
+  return before!==e.value;
+}
+function fillSearch(d){
+  let count=0;
+  const from=findField(["from","origin","source","boarding station","departure station","starting station"]);
+  const to=findField(["to","destination","arrival station","destination station"]);
+  const date=findField(["journey date","travel date","departure date","date"]);
+  const cls=findField(["class","coach","seat class","choose class"]);
+  const qty=findField(["passenger quantity","ticket quantity","passenger","quantity","adult"]);
+  const train=findField(["train name","train"]);
+  count+=typeAndPick(from,d.from)?1:0;
+  count+=typeAndPick(to,d.to)?1:0;
+  count+=typeAndPick(date,d.date)?1:0;
+  count+=choose(cls,d.class)?1:0;
+  count+=typeAndPick(qty,d.qty)?1:0;
+  count+=typeAndPick(train,d.train)?1:0;
+  return{message:count?"Filled "+count+" search field(s). Review before searching.":"No matching search fields were found on this page."}
+}
 function clearForm(){let n=0;allFields().forEach(e=>{if(e.tagName==="SELECT"){e.selectedIndex=0;e.dispatchEvent(new Event("change",{bubbles:true}));n++}else if(setValue(e,""))n++});return{message:"Cleared "+n+" editable field(s). Use carefully."}}
 function checkForm(){const all=allFields();const required=all.filter(e=>e.required||e.getAttribute("aria-required")==="true");const targets=required.length?required:all.filter(e=>{const t=textOf(e);return /(from|origin|source|boarding|destination|arrival|journey date|travel date|passenger name|mobile|phone|nid|national id|passport|class|coach|quantity|adult)/.test(t)});const empty=targets.filter(e=>!String(e.value||"").trim());const names=empty.slice(0,15).map(e=>e.getAttribute("aria-label")||e.placeholder||e.name||e.id||"unnamed field");return{message:"Checked "+targets.length+" relevant field(s); "+empty.length+" appear empty.",empty:names,requiredMode:!!required.length}}
 chrome.runtime.onMessage.addListener((m,s,sendResponse)=>{try{let r;if(m.type==="fillProfile")r=fillProfile(m.data);else if(m.type==="fillProfiles")r=fillProfiles(m.data||[]);else if(m.type==="fillSearch")r=fillSearch(m.data||{});else if(m.type==="clear")r=clearForm();else if(m.type==="checkForm")r=checkForm();sendResponse(r||{message:"No action"});}catch(e){sendResponse({message:"Could not complete helper action on this page. Refresh the Railway page and try again."});}return true});
