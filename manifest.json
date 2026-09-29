@@ -1,11 +1,15 @@
 {
   "manifest_version":3,
   "name":"Bangladesh Railway Ticket Assistant",
-  "version":"1.1.0",
+  "version":"2.0.0",
   "description":"Personal helper for Bangladesh Railway ticket booking forms.",
   "permissions":["storage","tabs","notifications","alarms"],
   "host_permissions":["https://eticket.railway.gov.bd/*"],
   "action":{"default_popup":"popup.html","default_title":"Railway Assistant"},
+  "commands":{
+    "open-railway":{"suggested_key":{"default":"Alt+R"},"description":"Open Bangladesh Railway"},
+    "fill-search":{"suggested_key":{"default":"Alt+S"},"description":"Fill saved search"}
+  },
   "content_scripts":[{"matches":["https://eticket.railway.gov.bd/*"],"js":["content.js"],"run_at":"document_idle"}],
   "background":{"service_worker":"background.js"}
 }
